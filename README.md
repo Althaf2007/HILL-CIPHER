@@ -30,6 +30,102 @@ STEP-5: Combine all these groups to get the complete cipher text.
 
 ## PROGRAM 
 
+```
+#include <stdio.h>
+#include <string.h>
+
+#define SIZE 3
+#define MOD 26
+
+int key[SIZE][SIZE];
+int invKey[SIZE][SIZE];
+
+int modInverse(int a)
+{
+    a = a % MOD;
+    for (int x = 1; x < MOD; x++)
+        if ((a * x) % MOD == 1)
+            return x;
+    return -1;
+}
+
+void getInverseKey()
+{
+    int det =
+        key[0][0] * (key[1][1] * key[2][2] - key[1][2] * key[2][1]) -
+        key[0][1] * (key[1][0] * key[2][2] - key[1][2] * key[2][0]) +
+        key[0][2] * (key[1][0] * key[2][1] - key[1][1] * key[2][0]);
+
+    det = (det % MOD + MOD) % MOD;
+    int invDet = modInverse(det);
+
+    invKey[0][0] = ( key[1][1]*key[2][2] - key[1][2]*key[2][1]) * invDet;
+    invKey[0][1] = (-key[0][1]*key[2][2] + key[0][2]*key[2][1]) * invDet;
+    invKey[0][2] = ( key[0][1]*key[1][2] - key[0][2]*key[1][1]) * invDet;
+
+    invKey[1][0] = (-key[1][0]*key[2][2] + key[1][2]*key[2][0]) * invDet;
+    invKey[1][1] = ( key[0][0]*key[2][2] - key[0][2]*key[2][0]) * invDet;
+    invKey[1][2] = (-key[0][0]*key[1][2] + key[0][2]*key[1][0]) * invDet;
+
+    invKey[2][0] = ( key[1][0]*key[2][1] - key[1][1]*key[2][0]) * invDet;
+    invKey[2][1] = (-key[0][0]*key[2][1] + key[0][1]*key[2][0]) * invDet;
+    invKey[2][2] = ( key[0][0]*key[1][1] - key[0][1]*key[1][0]) * invDet;
+
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            invKey[i][j] = (invKey[i][j] % MOD + MOD) % MOD;
+}
+
+void process(char *text, int matrix[SIZE][SIZE], char *result)
+{
+    int len = strlen(text);
+    int k = 0;
+
+    for (int i = 0; i < len; i += 3)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            int sum = 0;
+            for (int x = 0; x < SIZE; x++)
+                sum += matrix[j][x] * (text[i + x] - 'A');
+
+            result[k++] = (sum % MOD) + 'A';
+        }
+    }
+    result[k] = '\0';
+}
+
+int main()
+{
+    char plain[100], encrypted[100], decrypted[100];
+
+    printf("Enter Plain Text (UPPERCASE): ");
+    scanf("%s", plain);
+
+    if (strlen(plain) % 3 != 0)
+        strcat(plain, "X");
+
+    printf("Enter 3x3 Key Matrix:\n");
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            scanf("%d", &key[i][j]);
+
+    process(plain, key, encrypted);
+    getInverseKey();
+    process(encrypted, invKey, decrypted);
+
+    printf("\nInput            : %s", plain);
+    printf("\nEncrypted message: %s", encrypted);
+    printf("\nDecrypted message: %s\n", decrypted);
+
+    return 0;
+}
+```
+
 ## OUTPUT
 
+<img width="1743" height="826" alt="Screenshot 2026-01-30 092438" src="https://github.com/user-attachments/assets/6ac03504-725d-4e64-8c12-4f9929d6ba16" />
+
 ## RESULT
+
+Hence, the Hill Cipher substitution technique was implemented and verified using encryption and decryption.
